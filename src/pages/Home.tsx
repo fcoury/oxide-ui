@@ -1,4 +1,12 @@
-import { Box, Button, Grid, GridItem, useColorMode } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Grid,
+  GridItem,
+  Select,
+  SimpleGrid,
+  useColorMode,
+} from '@chakra-ui/react';
 import { json } from '@codemirror/lang-json';
 import CodeMirror from '@uiw/react-codemirror';
 import { useState } from 'react';
@@ -37,6 +45,22 @@ FROM (
     <Box p={5}>
       <Grid templateColumns="repeat(2, 1fr)" gap={6}>
         <GridItem w="100%">
+          <SimpleGrid columns={2} spacing={2} mb={2}>
+            <Box>
+              <Select size="xs">
+                <option value="database 1">database 1</option>
+                <option value="database 2">database 2</option>
+                <option value="database 3">database 3</option>
+              </Select>
+            </Box>
+            <Box>
+              <Select size="xs">
+                <option value="collection 1">collection 1</option>
+                <option value="collection 2">collection 2</option>
+                <option value="collection 3">collection 3</option>
+              </Select>
+            </Box>
+          </SimpleGrid>
           <CodeMirror
             value={match}
             height="calc(40vh)"
@@ -45,10 +69,13 @@ FROM (
           />
         </GridItem>
         <GridItem w="100%">
+          <Box h={'26px'} mb={2}>
+            Generated Query
+          </Box>
           <SyntaxHighlighter
             language="sql"
             style={colorMode === 'dark' ? a11yDark : a11yLight}
-            customStyle={{ height: 'calc(40vh)' }}
+            customStyle={{ height: 'calc(40vh)', fontSize: '14px' }}
             wrapLongLines={true}
           >
             {query}
