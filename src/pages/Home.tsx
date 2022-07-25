@@ -9,37 +9,112 @@ import {
 } from '@chakra-ui/react';
 import { json } from '@codemirror/lang-json';
 import CodeMirror from '@uiw/react-codemirror';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
+async function post(url: string, data: any) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  return await res.json();
+}
+
+async function get(url: string) {
+  const res = await fetch(url);
+  return await res.json();
+}
+
+type DebounceFn = (...args: any[]) => void;
+const debounce = (fn: DebounceFn, ms = 0) => {
+  let timeoutId: number | null = null;
+  return function (...args: any[]) {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn.apply(this, args);
+    }, ms);
+  };
+};
+
 export default function Home() {
   const { colorMode } = useColorMode();
   const [match, setMatch] = useState('{}');
-  const [query, setQuery] = useState(`SELECT _jsonb #- '{age_sum}'
-FROM (
-	SELECT
-		row_to_json(s_wrap)::jsonb AS _jsonb
-	FROM (
-		SELECT
-			_jsonb->'city' AS _id,
-			SUM((
-        CASE WHEN (_jsonb->'age' ? '$f')
-        THEN (_jsonb->'age'->>'$f')::numeric
-        ELSE (_jsonb->'age')::numeric END
-      )) AS age_sum
-		FROM (
-			SELECT *
-      FROM "db_test"."test_e4a3258c-29ad-49e0-aa41-327750e568e4"
-      WHERE _jsonb->'pick' = 'true'
-		) AS s_group
-		GROUP BY _id
-	) AS s_wrap
-) AS s_project;
-  `);
+  const [valid, setValid] = useState(true);
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState(null);
+  const [databases, setDatabases] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [database, setDatabase] = useState('');
+  const [collection, setCollection] = useState('');
+
+  /** Effects */
+  useEffect(() => {
+    convert();
+    return;
+  }, [match]);
+  useEffect(() => {
+    loadDatabases();
+    return;
+  }, []);
+  useEffect(() => {
+    loadCollections();
+    return;
+  }, [database]);
+
+  /** API Calls */
+  const convert = async () => {
+    const data: any = await post('/api/convert', JSON.parse(match));
+    if (data.error) {
+      setError(data.error);
+      return;
+    }
+    setQuery(data.sql);
+  };
+
+  const loadDatabases = async () => {
+    let { databases } = await get('/api/databases');
+    if (!databases) return;
+    const filteredDatabases = databases.filter((db: string) => db !== 'public');
+    setDatabases(filteredDatabases);
+    setDatabase(filteredDatabases[0]);
+  };
+
+  const loadCollections = async () => {
+    if (!database) return;
+    let { collections } = await get(`/api/databases/${database}/collections`);
+    setCollections(collections);
+  };
+
+  /** Events */
+  const onMatchChanged = debounce((str) => {
+    try {
+      setMatch(str);
+      JSON.parse(str);
+      setValid(true);
+    } catch (e) {
+      setValid(false);
+    }
+  }, 250);
+
+  const formatMatch = () => {
+    setMatch(JSON.stringify(JSON.parse(match), null, 2));
+  };
+
+  /** Properties */
+  const databaseOptions = databases.map((db) => (
+    <option value={db}>{db}</option>
+  ));
+
+  const collectionOptions = collections.map((db) => (
+    <option value={db}>{db}</option>
+  ));
 
   return (
     <Box p={5}>
@@ -47,17 +122,13 @@ FROM (
         <GridItem w="100%">
           <SimpleGrid columns={2} spacing={2} mb={2}>
             <Box>
-              <Select size="xs">
-                <option value="database 1">database 1</option>
-                <option value="database 2">database 2</option>
-                <option value="database 3">database 3</option>
+              <Select size="xs" value={database}>
+                {databaseOptions}
               </Select>
             </Box>
             <Box>
-              <Select size="xs">
-                <option value="collection 1">collection 1</option>
-                <option value="collection 2">collection 2</option>
-                <option value="collection 3">collection 3</option>
+              <Select size="xs" value={collection}>
+                {collectionOptions}
               </Select>
             </Box>
           </SimpleGrid>
@@ -66,6 +137,8 @@ FROM (
             height="calc(40vh)"
             theme={colorMode}
             extensions={[json()]}
+            onChange={onMatchChanged}
+            onBlur={formatMatch}
           />
         </GridItem>
         <GridItem w="100%">
