@@ -10,12 +10,12 @@ export default function Home() {
   const [query, setQuery] = useState('SELECT * FROM table');
 
   return (
-    <Box p={10}>
+    <Box p={5}>
       <Grid templateColumns="repeat(2, 1fr)" gap={6}>
         <GridItem w="100%">
           <CodeMirror
             value={match}
-            height="calc(50vh)"
+            height="calc(40vh)"
             theme={colorMode}
             extensions={[json()]}
           />
@@ -23,7 +23,7 @@ export default function Home() {
         <GridItem w="100%">
           <CodeMirror
             value={query}
-            height="calc(50vh)"
+            height="calc(40vh)"
             theme={colorMode}
             extensions={[sql()]}
           />
