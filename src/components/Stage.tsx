@@ -9,7 +9,7 @@ import {
 import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
 import _ from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import { FocusEvent, useCallback, useEffect, useState } from 'react';
 import { formatCode, parseObj } from '../lib/utils';
 
 interface StageProps {
@@ -21,24 +21,17 @@ interface StageProps {
 export default function Stage(props: StageProps) {
   const { name } = props;
   const [value, setValue] = useState(props.value);
-  const [valid, setValid] = useState(true);
+  const [error, setError] = useState('');
   const { colorMode } = useColorMode();
 
   /** Effects */
   useEffect(() => {
     try {
-      // JSON.parse(value);
-      console.log('value changed', value);
       parseObj(value);
-      console.log('calling onChange', value);
       props.onChange(value);
-      setValid(true);
-    } catch (e) {
-      console.error('Error trying to parse object', e);
-      if (e instanceof SyntaxError) {
-        console.log('Found error', e);
-      }
-      setValid(false);
+      setError('');
+    } catch (e: any) {
+      // setError(e.message);
     }
   }, [value]);
 
@@ -55,10 +48,15 @@ export default function Stage(props: StageProps) {
     [],
   );
 
-  const onBlur = () => {
-    // setValue(JSON.stringify(JSON.parse(value), null, 2));
-    setValue(formatCode(value));
-    // setValue()
+  const onBlur = (event: FocusEvent<HTMLInputElement>) => {
+    try {
+      parseObj(value);
+      setValue(formatCode(value));
+    } catch (error: any) {
+      setError(error.message);
+      event.preventDefault();
+      event.target.focus();
+    }
   };
 
   return (
@@ -80,6 +78,11 @@ export default function Stage(props: StageProps) {
           onChange={onChange}
           onBlur={onBlur}
         />
+        {error && (
+          <Box fontSize="0.8em" color="red.500" p={2}>
+            {error}
+          </Box>
+        )}
       </AccordionPanel>
     </AccordionItem>
   );
