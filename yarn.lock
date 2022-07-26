@@ -1275,6 +1275,11 @@ ansi-styles@^3.2.1:
   dependencies:
     color-convert "^1.9.0"
 
+argparse@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/argparse/-/argparse-2.0.1.tgz#246f50f3ca78a3240f6c997e8a9bd1eac49e4b38"
+  integrity sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
+
 aria-hidden@^1.1.1:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/aria-hidden/-/aria-hidden-1.1.3.tgz#bb48de18dc84787a3c6eee113709c473c64ec254"
@@ -1334,6 +1339,13 @@ character-reference-invalid@^1.0.0:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-1.1.4.tgz#083329cda0eae272ab3dbbf37e9a382c13af1560"
   integrity sha512-mKKUkUbhPpQlCOfIuZkvSEgktjPFIsZKRRbC6KWVEMvlzblj3i3asQv5ODsrwt0N3pHAEvjP8KTQPHkp0+6jOg==
+
+cl-sql-formatter@^4.0.10:
+  version "4.0.10"
+  resolved "https://registry.yarnpkg.com/cl-sql-formatter/-/cl-sql-formatter-4.0.10.tgz#3dd1f53b0e9a7fff6099573d15deaf1d2c98c4f3"
+  integrity sha512-fRdqdvqQZ26ponmrxQFOapF3SpJbeWGxBl1zkMNiRF1WXk+Hke9OrnCa4QU4x4r2ZTr+eMr5gLrGO1wqdDbw1w==
+  dependencies:
+    argparse "^2.0.1"
 
 codemirror@^6.0.0:
   version "6.0.1"

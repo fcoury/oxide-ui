@@ -17,6 +17,7 @@
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@uiw/react-codemirror": "^4.11.4",
+    "cl-sql-formatter": "^4.0.10",
     "framer-motion": "^6.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -1,4 +1,9 @@
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Box,
   Button,
   Grid,
@@ -15,6 +20,7 @@ import {
   a11yDark,
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { format } from 'sql-formatter';
 
 async function post(url: string, data: any) {
   const res = await fetch(url, {
@@ -46,6 +52,7 @@ const debounce = (fn: DebounceFn, ms = 0) => {
 export default function Home() {
   const { colorMode } = useColorMode();
   const [match, setMatch] = useState('{}');
+  const [group, setGroup] = useState('{}');
   const [valid, setValid] = useState(true);
   const [query, setQuery] = useState('');
   const [error, setError] = useState(null);
@@ -53,29 +60,36 @@ export default function Home() {
   const [collections, setCollections] = useState([]);
   const [database, setDatabase] = useState('');
   const [collection, setCollection] = useState('');
+  const [data, setData] = useState([]);
 
   /** Effects */
   useEffect(() => {
     convert();
-    return;
-  }, [match]);
+  }, [match, group]);
   useEffect(() => {
     loadDatabases();
-    return;
   }, []);
   useEffect(() => {
     loadCollections();
-    return;
   }, [database]);
+  useEffect(() => {
+    convert();
+  }, [collection]);
 
   /** API Calls */
   const convert = async () => {
-    const data: any = await post('/api/convert', JSON.parse(match));
+    console.log('database', database);
+    console.log('collection', collection);
+    const data: any = await post('/api/convert', {
+      database,
+      collection,
+      pipeline: [{ $match: JSON.parse(match) }, { $group: JSON.parse(group) }],
+    });
     if (data.error) {
       setError(data.error);
       return;
     }
-    setQuery(data.sql);
+    setQuery(format(data.sql, { language: 'postgresql' }));
   };
 
   const loadDatabases = async () => {
@@ -90,6 +104,7 @@ export default function Home() {
     if (!database) return;
     let { collections } = await get(`/api/databases/${database}/collections`);
     setCollections(collections);
+    setCollection(collections[0]);
   };
 
   /** Events */
@@ -103,8 +118,34 @@ export default function Home() {
     }
   }, 250);
 
+  const onGroupChanged = debounce((str) => {
+    try {
+      setGroup(str);
+      JSON.parse(str);
+      setValid(true);
+    } catch (e) {
+      setValid(false);
+    }
+  }, 250);
+
+  const onRun = async () => {
+    const { rows } = await post('/api/run', { query });
+    setData(rows);
+  };
+
+  const onClear = async () => {
+    setMatch('{}');
+    setGroup('{}');
+    setData([]);
+  };
+
+  /** Transformers */
   const formatMatch = () => {
     setMatch(JSON.stringify(JSON.parse(match), null, 2));
+  };
+
+  const formatGroup = () => {
+    setGroup(JSON.stringify(JSON.parse(group), null, 2));
   };
 
   /** Properties */
@@ -118,28 +159,70 @@ export default function Home() {
 
   return (
     <Box p={5}>
-      <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+      <Grid templateColumns="repeat(3, 1fr)" gap={6}>
         <GridItem w="100%">
           <SimpleGrid columns={2} spacing={2} mb={2}>
             <Box>
-              <Select size="xs" value={database}>
+              <Select
+                size="xs"
+                value={database}
+                onChange={(e) => setDatabase(e.target.value)}
+              >
                 {databaseOptions}
               </Select>
             </Box>
             <Box>
-              <Select size="xs" value={collection}>
+              <Select
+                size="xs"
+                value={collection}
+                onChange={(e) => setCollection(e.target.value)}
+              >
                 {collectionOptions}
               </Select>
             </Box>
           </SimpleGrid>
-          <CodeMirror
-            value={match}
-            height="calc(40vh)"
-            theme={colorMode}
-            extensions={[json()]}
-            onChange={onMatchChanged}
-            onBlur={formatMatch}
-          />
+          <Accordion allowMultiple>
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left">
+                    <code>$match</code> Stage
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel>
+                <CodeMirror
+                  value={match}
+                  height="calc(20vh)"
+                  theme={colorMode}
+                  extensions={[json()]}
+                  onChange={onMatchChanged}
+                  onBlur={formatMatch}
+                />
+              </AccordionPanel>
+            </AccordionItem>
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left">
+                    <code>$group</code> Stage
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel>
+                <CodeMirror
+                  value={group}
+                  height="calc(20vh)"
+                  theme={colorMode}
+                  extensions={[json()]}
+                  onChange={onGroupChanged}
+                  onBlur={formatGroup}
+                />
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
         </GridItem>
         <GridItem w="100%">
           <Box h={'26px'} mb={2}>
@@ -148,19 +231,25 @@ export default function Home() {
           <SyntaxHighlighter
             language="sql"
             style={colorMode === 'dark' ? a11yDark : a11yLight}
-            customStyle={{ height: 'calc(40vh)', fontSize: '14px' }}
+            customStyle={{ height: 'calc(60vh)', fontSize: '12px' }}
             wrapLongLines={true}
           >
             {query}
           </SyntaxHighlighter>
+          <Box mt={5}>
+            <Button colorScheme="gray" onClick={onRun}>
+              Run
+            </Button>
+            <Button colorScheme="gray" onClick={onClear} ml={2}>
+              Clear
+            </Button>
+          </Box>
+        </GridItem>
+        <GridItem w="100%" overflowX="auto">
+          <Box>{data && `${data.length} records`}</Box>
+          <pre>{data && JSON.stringify(data, null, 2)}</pre>
         </GridItem>
       </Grid>
-      <Box mt={5}>
-        <Button colorScheme="gray">Run</Button>
-        <Button colorScheme="gray" ml={2}>
-          Clear
-        </Button>
-      </Box>
     </Box>
   );
 }
