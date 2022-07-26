@@ -454,7 +454,7 @@ function peg$parse(input: string, options?: IParseOptions) {
   }
 
   function peg$parseobject(): any {
-    let s0, s1, s2, s3, s4, s5, s6, s7, s8;
+    let s0, s1, s2, s3, s4, s5, s6, s7;
 
     const key = peg$currPos * 36 + 0;
     const cached: ICached = peg$resultsCache[key];
@@ -477,18 +477,9 @@ function peg$parse(input: string, options?: IParseOptions) {
         if (s6 as any !== peg$FAILED) {
           s7 = peg$parsemember();
           if (s7 as any !== peg$FAILED) {
-            s8 = peg$parsevalue_separator();
-            if (s8 as any === peg$FAILED) {
-              s8 = null;
-            }
-            if (s8 as any !== peg$FAILED) {
-              peg$savedPos = s5;
-              s6 = peg$c0(s3, s7);
-              s5 = s6;
-            } else {
-              peg$currPos = s5;
-              s5 = peg$FAILED;
-            }
+            peg$savedPos = s5;
+            s6 = peg$c0(s3, s7);
+            s5 = s6;
           } else {
             peg$currPos = s5;
             s5 = peg$FAILED;
@@ -504,18 +495,9 @@ function peg$parse(input: string, options?: IParseOptions) {
           if (s6 as any !== peg$FAILED) {
             s7 = peg$parsemember();
             if (s7 as any !== peg$FAILED) {
-              s8 = peg$parsevalue_separator();
-              if (s8 as any === peg$FAILED) {
-                s8 = null;
-              }
-              if (s8 as any !== peg$FAILED) {
-                peg$savedPos = s5;
-                s6 = peg$c0(s3, s7);
-                s5 = s6;
-              } else {
-                peg$currPos = s5;
-                s5 = peg$FAILED;
-              }
+              peg$savedPos = s5;
+              s6 = peg$c0(s3, s7);
+              s5 = s6;
             } else {
               peg$currPos = s5;
               s5 = peg$FAILED;
@@ -526,9 +508,18 @@ function peg$parse(input: string, options?: IParseOptions) {
           }
         }
         if (s4 as any !== peg$FAILED) {
-          peg$savedPos = s2;
-          s3 = peg$c1(s3, s4);
-          s2 = s3;
+          s5 = peg$parsevalue_separator();
+          if (s5 as any === peg$FAILED) {
+            s5 = null;
+          }
+          if (s5 as any !== peg$FAILED) {
+            peg$savedPos = s2;
+            s3 = peg$c1(s3, s4);
+            s2 = s3;
+          } else {
+            peg$currPos = s2;
+            s2 = peg$FAILED;
+          }
         } else {
           peg$currPos = s2;
           s2 = peg$FAILED;

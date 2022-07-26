@@ -1,7 +1,7 @@
 object
   = begin_object
     members:(
-      head:member tail:(value_separator m:member value_separator? { return m; })*
+      head:member tail:(value_separator m:member { return m; })* value_separator?
       {
         var result = {};
         [head].concat(tail).forEach(function(element) {
