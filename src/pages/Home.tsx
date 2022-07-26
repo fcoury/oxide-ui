@@ -2,6 +2,8 @@ import {
   Accordion,
   Box,
   Button,
+  Center,
+  Flex,
   Grid,
   GridItem,
   Select,
@@ -52,6 +54,7 @@ export default function Home() {
 
   /** Effects */
   useEffect(() => {
+    setError('');
     convert();
   }, [match, group, project, sort]);
   useEffect(() => {
@@ -190,12 +193,21 @@ export default function Home() {
             {query}
           </SyntaxHighlighter>
           <Box mt={5}>
-            <Button colorScheme="gray" onClick={onRun}>
-              Run
-            </Button>
-            <Button colorScheme="gray" onClick={onClear} ml={2}>
-              Clear
-            </Button>
+            <Flex>
+              <Center>
+                <Button colorScheme="gray" onClick={onRun}>
+                  Run
+                </Button>
+                <Button colorScheme="gray" onClick={onClear} ml={2}>
+                  Clear
+                </Button>
+              </Center>
+              {error && (
+                <Center ml={2} textAlign="right" color="red.500">
+                  {error}
+                </Center>
+              )}
+            </Flex>
           </Box>
         </GridItem>
         <GridItem w="100%" overflowX="auto">
