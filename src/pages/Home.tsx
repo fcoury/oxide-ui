@@ -17,6 +17,7 @@ import {
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import Stage from '../components/Stage';
+import { parseObj } from '../lib/utils';
 
 async function post(url: string, data: any) {
   const res = await fetch(url, {
@@ -38,6 +39,7 @@ export default function Home() {
   const { colorMode } = useColorMode();
   const [match, setMatch] = useState('{}');
   const [group, setGroup] = useState('{}');
+  const [project, setProject] = useState('{}');
   const [sort, setSort] = useState('{}');
   const [valid, setValid] = useState(true);
   const [query, setQuery] = useState('');
@@ -51,7 +53,7 @@ export default function Home() {
   /** Effects */
   useEffect(() => {
     convert();
-  }, [match, group, sort]);
+  }, [match, group, project, sort]);
   useEffect(() => {
     loadDatabases();
   }, []);
@@ -67,18 +69,24 @@ export default function Home() {
     let pipeline = [];
 
     pipeline.push({
-      $match: JSON.parse(match),
+      $match: parseObj(match),
     });
 
     if (group !== '{}' && !_.isEmpty(group)) {
       pipeline.push({
-        $group: JSON.parse(group),
+        $group: parseObj(group),
+      });
+    }
+
+    if (project !== '{}' && !_.isEmpty(project)) {
+      pipeline.push({
+        $project: parseObj(project),
       });
     }
 
     if (sort !== '{}' && !_.isEmpty(sort)) {
       pipeline.push({
-        $sort: JSON.parse(sort),
+        $sort: parseObj(sort),
       });
     }
 
@@ -118,18 +126,25 @@ export default function Home() {
   const onClear = async () => {
     setMatch('{}');
     setGroup('{}');
+    setProject('{}');
     setSort('{}');
     setData([]);
   };
 
   /** Properties */
   const databaseOptions = databases.map((db) => (
-    <option value={db}>{db}</option>
+    <option key={db} value={db}>
+      {db}
+    </option>
   ));
 
   const collectionOptions = collections.map((db) => (
-    <option value={db}>{db}</option>
+    <option key={db} value={db}>
+      {db}
+    </option>
   ));
+
+  console.log('group', group);
 
   return (
     <Box p={5}>
@@ -156,9 +171,10 @@ export default function Home() {
             </Box>
           </SimpleGrid>
           <Accordion allowMultiple>
-            <Stage name="$match" onChange={setMatch} />
-            <Stage name="$group" onChange={setGroup} />
-            <Stage name="$sort" onChange={setSort} />
+            <Stage name="$match" value={match} onChange={setMatch} />
+            <Stage name="$group" value={group} onChange={setGroup} />
+            <Stage name="$project" value={project} onChange={setProject} />
+            <Stage name="$sort" value={sort} onChange={setSort} />
           </Accordion>
         </GridItem>
         <GridItem w="100%">

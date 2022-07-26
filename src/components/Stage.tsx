@@ -6,7 +6,7 @@ import {
   Box,
   useColorMode,
 } from '@chakra-ui/react';
-import { json } from '@codemirror/lang-json';
+import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
 import _ from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
@@ -14,12 +14,13 @@ import { formatCode, parseObj } from '../lib/utils';
 
 interface StageProps {
   name: string;
+  value: string;
   onChange: (value: string) => void;
 }
 
 export default function Stage(props: StageProps) {
   const { name } = props;
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(props.value);
   const [valid, setValid] = useState(true);
   const { colorMode } = useColorMode();
 
@@ -27,11 +28,13 @@ export default function Stage(props: StageProps) {
   useEffect(() => {
     try {
       // JSON.parse(value);
-      const obj = parseObj(value);
-      console.log('obj', obj);
-      props.onChange(JSON.stringify(obj));
+      console.log('value changed', value);
+      parseObj(value);
+      console.log('calling onChange', value);
+      props.onChange(value);
       setValid(true);
     } catch (e) {
+      console.error('Error trying to parse object', e);
       if (e instanceof SyntaxError) {
         console.log('Found error', e);
       }
@@ -39,14 +42,14 @@ export default function Stage(props: StageProps) {
     }
   }, [value]);
 
-  // useEffect(() => {
-  //   setValue(props.value);
-  // }, [props.value]);
+  useEffect(() => {
+    console.log('props.value changed', props.value);
+    setValue(props.value);
+  }, [props.value]);
 
   /** Events */
   const onChange = useCallback(
     _.debounce((str) => {
-      console.log('setting, str', str);
       setValue(str);
     }, 250),
     [],
@@ -73,7 +76,7 @@ export default function Stage(props: StageProps) {
           value={value}
           height="calc(20vh)"
           theme={colorMode}
-          extensions={[json()]}
+          extensions={[javascript()]}
           onChange={onChange}
           onBlur={onBlur}
         />
