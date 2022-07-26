@@ -9,7 +9,7 @@ import {
 import { json } from '@codemirror/lang-json';
 import CodeMirror from '@uiw/react-codemirror';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatCode, parseObj } from '../lib/utils';
 
 interface StageProps {
@@ -44,9 +44,13 @@ export default function Stage(props: StageProps) {
   // }, [props.value]);
 
   /** Events */
-  const onChange = _.debounce((str) => {
-    setValue(str);
-  }, 250);
+  const onChange = useCallback(
+    _.debounce((str) => {
+      console.log('setting, str', str);
+      setValue(str);
+    }, 250),
+    [],
+  );
 
   const onBlur = () => {
     // setValue(JSON.stringify(JSON.parse(value), null, 2));

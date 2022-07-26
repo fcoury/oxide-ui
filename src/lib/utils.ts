@@ -7,12 +7,13 @@ export function parseObj(str: string): any {
 }
 
 export function formatCode(code: string): string {
-  const result = prettier.format(code, {
+  const result = prettier.format(`const a = ${code};`, {
     parser: 'babel',
     plugins: [babylon],
     semi: false,
     singleQuote: true,
     printWidth: 40,
   });
-  return result;
+  console.log('result', result);
+  return result.slice(10, -1);
 }
