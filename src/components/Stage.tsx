@@ -67,7 +67,18 @@ export default function Stage(props: StageProps) {
             flex="1"
             textAlign="left"
             color={
-              _.isEmpty(value) || value.trim() === '{}' ? '' : 'yellow.200'
+              _.isEmpty(value) || value.trim() === '{}'
+                ? 'gray.500'
+                : colorMode === 'dark'
+                ? 'yellow.200'
+                : 'blue.900'
+            }
+            fontWeight={
+              _.isEmpty(value) || value.trim() === '{}'
+                ? ''
+                : colorMode === 'dark'
+                ? 'normal'
+                : 'bold'
             }
           >
             <code>{name}</code> Stage
