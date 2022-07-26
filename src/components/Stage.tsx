@@ -63,7 +63,13 @@ export default function Stage(props: StageProps) {
     <AccordionItem>
       <h2>
         <AccordionButton>
-          <Box flex="1" textAlign="left">
+          <Box
+            flex="1"
+            textAlign="left"
+            color={
+              _.isEmpty(value) || value.trim() === '{}' ? '' : 'yellow.200'
+            }
+          >
             <code>{name}</code> Stage
           </Box>
           <AccordionIcon />
