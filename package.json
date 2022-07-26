@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "parser:generate": "peggy --plugin ./node_modules/ts-pegjs/src/tspegjs.js -o src/lib/parser.ts --cache src/lib/object.pegjs "
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.4",
@@ -19,18 +20,28 @@
     "@uiw/react-codemirror": "^4.11.4",
     "cl-sql-formatter": "^4.0.10",
     "framer-motion": "^6.5.1",
+    "lodash": "^4.17.21",
+    "prettier": "^2.7.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.4.0",
     "react-router-dom": "6",
-    "react-syntax-highlighter": "^15.5.0"
+    "react-syntax-highlighter": "^15.5.0",
+    "vm2": "^3.9.10"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.182",
+    "@types/prettier": "^2.6.3",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@types/react-syntax-highlighter": "^15.5.3",
     "@vitejs/plugin-react": "^2.0.0",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "peggy": "^2.0.1",
+    "ts-pegjs": "^2.0.2",
     "typescript": "^4.6.4",
-    "vite": "^3.0.0"
+    "vite": "^3.0.0",
+    "vitest": "^0.19.1"
   }
 }
