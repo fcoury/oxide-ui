@@ -14,6 +14,5 @@ export function formatCode(code: string): string {
     singleQuote: true,
     printWidth: 40,
   });
-  console.log('result', result);
   return result.slice(10, -1);
 }
