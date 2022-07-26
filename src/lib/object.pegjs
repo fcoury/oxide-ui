@@ -103,7 +103,7 @@ HEXDIG = [0-9a-f]i
 array
   = begin_array
     values:(
-      head:leaf_value tail:(value_separator v:leaf_value { return v; })*
+      head:leaf_value tail:(value_separator v:leaf_value { return v; })* value_separator?
       { return [head].concat(tail); }
     )?
     end_array
@@ -112,7 +112,7 @@ array
 array_number
   = begin_array
     values:(
-      head:number tail:(value_separator v:number { return v; })*
+      head:number tail:(value_separator v:number { return v; })* value_separator?
       { return [head].concat(tail); }
     )?
     end_array
