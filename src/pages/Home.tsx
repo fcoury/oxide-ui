@@ -19,6 +19,7 @@ import {
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import Stage from '../components/Stage';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { parseObj } from '../lib/utils';
 
 async function post(url: string, data: any) {
@@ -45,11 +46,17 @@ export default function Home() {
   const [sort, setSort] = useState('{}');
   const [valid, setValid] = useState(true);
   const [query, setQuery] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [databases, setDatabases] = useState([]);
   const [collections, setCollections] = useState([]);
-  const [database, setDatabase] = useState('');
-  const [collection, setCollection] = useState('');
+  const [database, setDatabase] = useLocalStorage<string>(
+    'currentDatabase',
+    '',
+  );
+  const [collection, setCollection] = useLocalStorage<string>(
+    'currentCollection',
+    '',
+  );
   const [data, setData] = useState([]);
 
   /** Effects */
@@ -110,14 +117,18 @@ export default function Home() {
     if (!databases) return;
     const filteredDatabases = databases.filter((db: string) => db !== 'public');
     setDatabases(filteredDatabases);
-    setDatabase(filteredDatabases[0]);
+    if (database === '') {
+      setDatabase(filteredDatabases[0]);
+    }
   };
 
   const loadCollections = async () => {
     if (!database) return;
     let { collections } = await get(`/api/databases/${database}/collections`);
     setCollections(collections);
-    setCollection(collections[0]);
+    if (collection === '') {
+      setCollection(collections[0]);
+    }
   };
 
   /** Events */
