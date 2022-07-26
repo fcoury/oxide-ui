@@ -1,9 +1,5 @@
 import {
   Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
   Box,
   Button,
   Grid,
@@ -12,15 +8,15 @@ import {
   SimpleGrid,
   useColorMode,
 } from '@chakra-ui/react';
-import { json } from '@codemirror/lang-json';
-import CodeMirror from '@uiw/react-codemirror';
+import { format } from 'cl-sql-formatter';
+import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { format } from 'sql-formatter';
+import Stage from '../components/Stage';
 
 async function post(url: string, data: any) {
   const res = await fetch(url, {
@@ -38,21 +34,11 @@ async function get(url: string) {
   return await res.json();
 }
 
-type DebounceFn = (...args: any[]) => void;
-const debounce = (fn: DebounceFn, ms = 0) => {
-  let timeoutId: number | null = null;
-  return function (...args: any[]) {
-    if (timeoutId) clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      fn.apply(this, args);
-    }, ms);
-  };
-};
-
 export default function Home() {
   const { colorMode } = useColorMode();
   const [match, setMatch] = useState('{}');
   const [group, setGroup] = useState('{}');
+  const [sort, setSort] = useState('{}');
   const [valid, setValid] = useState(true);
   const [query, setQuery] = useState('');
   const [error, setError] = useState(null);
@@ -65,7 +51,7 @@ export default function Home() {
   /** Effects */
   useEffect(() => {
     convert();
-  }, [match, group]);
+  }, [match, group, sort]);
   useEffect(() => {
     loadDatabases();
   }, []);
@@ -78,12 +64,28 @@ export default function Home() {
 
   /** API Calls */
   const convert = async () => {
-    console.log('database', database);
-    console.log('collection', collection);
+    let pipeline = [];
+
+    pipeline.push({
+      $match: JSON.parse(match),
+    });
+
+    if (group !== '{}' && !_.isEmpty(group)) {
+      pipeline.push({
+        $group: JSON.parse(group),
+      });
+    }
+
+    if (sort !== '{}' && !_.isEmpty(sort)) {
+      pipeline.push({
+        $sort: JSON.parse(sort),
+      });
+    }
+
     const data: any = await post('/api/convert', {
       database,
       collection,
-      pipeline: [{ $match: JSON.parse(match) }, { $group: JSON.parse(group) }],
+      pipeline,
     });
     if (data.error) {
       setError(data.error);
@@ -108,26 +110,6 @@ export default function Home() {
   };
 
   /** Events */
-  const onMatchChanged = debounce((str) => {
-    try {
-      setMatch(str);
-      JSON.parse(str);
-      setValid(true);
-    } catch (e) {
-      setValid(false);
-    }
-  }, 250);
-
-  const onGroupChanged = debounce((str) => {
-    try {
-      setGroup(str);
-      JSON.parse(str);
-      setValid(true);
-    } catch (e) {
-      setValid(false);
-    }
-  }, 250);
-
   const onRun = async () => {
     const { rows } = await post('/api/run', { query });
     setData(rows);
@@ -136,16 +118,8 @@ export default function Home() {
   const onClear = async () => {
     setMatch('{}');
     setGroup('{}');
+    setSort('{}');
     setData([]);
-  };
-
-  /** Transformers */
-  const formatMatch = () => {
-    setMatch(JSON.stringify(JSON.parse(match), null, 2));
-  };
-
-  const formatGroup = () => {
-    setGroup(JSON.stringify(JSON.parse(group), null, 2));
   };
 
   /** Properties */
@@ -182,46 +156,9 @@ export default function Home() {
             </Box>
           </SimpleGrid>
           <Accordion allowMultiple>
-            <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">
-                    <code>$match</code> Stage
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel>
-                <CodeMirror
-                  value={match}
-                  height="calc(20vh)"
-                  theme={colorMode}
-                  extensions={[json()]}
-                  onChange={onMatchChanged}
-                  onBlur={formatMatch}
-                />
-              </AccordionPanel>
-            </AccordionItem>
-            <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">
-                    <code>$group</code> Stage
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel>
-                <CodeMirror
-                  value={group}
-                  height="calc(20vh)"
-                  theme={colorMode}
-                  extensions={[json()]}
-                  onChange={onGroupChanged}
-                  onBlur={formatGroup}
-                />
-              </AccordionPanel>
-            </AccordionItem>
+            <Stage name="$match" value={match} onChange={setMatch} />
+            <Stage name="$group" value={group} onChange={setGroup} />
+            <Stage name="$sort" value={sort} onChange={setSort} />
           </Accordion>
         </GridItem>
         <GridItem w="100%">
