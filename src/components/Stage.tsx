@@ -14,13 +14,12 @@ import { formatCode, parseObj } from '../lib/utils';
 
 interface StageProps {
   name: string;
-  value: string;
   onChange: (value: string) => void;
 }
 
 export default function Stage(props: StageProps) {
   const { name } = props;
-  const [value, setValue] = useState(props.value);
+  const [value, setValue] = useState('');
   const [valid, setValid] = useState(true);
   const { colorMode } = useColorMode();
 
@@ -28,17 +27,21 @@ export default function Stage(props: StageProps) {
   useEffect(() => {
     try {
       // JSON.parse(value);
-      parseObj(value);
-      props.onChange(value);
+      const obj = parseObj(value);
+      console.log('obj', obj);
+      props.onChange(JSON.stringify(obj));
       setValid(true);
     } catch (e) {
+      if (e instanceof SyntaxError) {
+        console.log('Found error', e);
+      }
       setValid(false);
     }
   }, [value]);
 
-  useEffect(() => {
-    setValue(props.value);
-  }, [props.value]);
+  // useEffect(() => {
+  //   setValue(props.value);
+  // }, [props.value]);
 
   /** Events */
   const onChange = _.debounce((str) => {
@@ -48,6 +51,7 @@ export default function Stage(props: StageProps) {
   const onBlur = () => {
     // setValue(JSON.stringify(JSON.parse(value), null, 2));
     setValue(formatCode(value));
+    // setValue()
   };
 
   return (

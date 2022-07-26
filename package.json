@@ -10,6 +10,7 @@
     "parser:generate": "peggy --plugin ./node_modules/ts-pegjs/src/tspegjs.js -o src/lib/parser.ts --cache src/lib/object.pegjs "
   },
   "dependencies": {
+    "@babel/parser": "^7.18.9",
     "@chakra-ui/icons": "^2.0.4",
     "@chakra-ui/react": "^2.2.4",
     "@codemirror/lang-javascript": "^6.0.2",
@@ -18,6 +19,7 @@
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@uiw/react-codemirror": "^4.11.4",
+    "babel-standalone": "^6.26.0",
     "cl-sql-formatter": "^4.0.10",
     "framer-motion": "^6.5.1",
     "lodash": "^4.17.21",

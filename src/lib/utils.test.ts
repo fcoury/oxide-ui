@@ -11,7 +11,7 @@ describe('parseObj', () => {
 
 describe('formatCode', async () => {
   it('formats code', async () => {
-    const str = `({ first: 1, second: 2, third: 3, fourth: 'a' })`;
+    const str = `{ first: 1, second: 2, third: 3, fourth: 'a' }`;
     const formatted = formatCode(str);
     expect(formatted).toEqual(
       `{\n  first: 1,\n  second: 2,\n  third: 3,\n  fourth: 'a',\n}`,

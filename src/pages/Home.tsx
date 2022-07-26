@@ -156,9 +156,9 @@ export default function Home() {
             </Box>
           </SimpleGrid>
           <Accordion allowMultiple>
-            <Stage name="$match" value={match} onChange={setMatch} />
-            <Stage name="$group" value={group} onChange={setGroup} />
-            <Stage name="$sort" value={sort} onChange={setSort} />
+            <Stage name="$match" onChange={setMatch} />
+            <Stage name="$group" onChange={setGroup} />
+            <Stage name="$sort" onChange={setSort} />
           </Accordion>
         </GridItem>
         <GridItem w="100%">
