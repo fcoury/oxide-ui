@@ -50,6 +50,11 @@ export default function Stage(props: StageProps) {
 
   const onBlur = (event: FocusEvent<HTMLInputElement>) => {
     try {
+      if (_.isEmpty(value)) {
+        setValue('{}');
+        return;
+      }
+
       parseObj(value);
       setValue(formatCode(value));
     } catch (error: any) {
