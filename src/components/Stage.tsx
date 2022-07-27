@@ -59,6 +59,23 @@ export default function Stage(props: StageProps) {
     }
   };
 
+  /** Attributes */
+  const textColor = error
+    ? 'red.500'
+    : _.isEmpty(value) || value.trim() === '{}'
+    ? 'gray.500'
+    : colorMode === 'dark'
+    ? 'yellow.200'
+    : 'blue.900';
+
+  const fontWeight = error
+    ? 'bold'
+    : _.isEmpty(value) || value.trim() === '{}'
+    ? ''
+    : colorMode === 'dark'
+    ? 'normal'
+    : 'bold';
+
   return (
     <AccordionItem>
       <h2>
@@ -66,20 +83,8 @@ export default function Stage(props: StageProps) {
           <Box
             flex="1"
             textAlign="left"
-            color={
-              _.isEmpty(value) || value.trim() === '{}'
-                ? 'gray.500'
-                : colorMode === 'dark'
-                ? 'yellow.200'
-                : 'blue.900'
-            }
-            fontWeight={
-              _.isEmpty(value) || value.trim() === '{}'
-                ? ''
-                : colorMode === 'dark'
-                ? 'normal'
-                : 'bold'
-            }
+            color={textColor}
+            fontWeight={fontWeight}
           >
             <code>{name}</code> Stage
           </Box>
