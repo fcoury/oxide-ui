@@ -83,19 +83,19 @@ export default function Home() {
       $match: parseObj(match),
     });
 
-    if (group !== '{}' && !_.isEmpty(group)) {
+    if (group.trim() !== '{}' && !_.isEmpty(group)) {
       pipeline.push({
         $group: parseObj(group),
       });
     }
 
-    if (project !== '{}' && !_.isEmpty(project)) {
+    if (project.trim() !== '{}' && !_.isEmpty(project)) {
       pipeline.push({
         $project: parseObj(project),
       });
     }
 
-    if (sort !== '{}' && !_.isEmpty(sort)) {
+    if (sort.trim() !== '{}' && !_.isEmpty(sort)) {
       pipeline.push({
         $sort: parseObj(sort),
       });
@@ -158,8 +158,6 @@ export default function Home() {
       {db}
     </option>
   ));
-
-  console.log('group', group);
 
   return (
     <Box p={5}>
