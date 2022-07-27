@@ -1,5 +1,4 @@
 import {
-  Accordion,
   Box,
   Button,
   Center,
@@ -19,7 +18,7 @@ import {
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import DataTable from '../components/DataTable';
-import Stage from '../components/Stage';
+import Pipeline from '../components/Pipeline';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { parseObj } from '../lib/utils';
 
@@ -191,12 +190,13 @@ export default function Home() {
               </Select>
             </Box>
           </SimpleGrid>
-          <Accordion allowMultiple>
+          {/* <Accordion allowMultiple>
             <Stage name="$match" value={match} onChange={setMatch} />
             <Stage name="$group" value={group} onChange={setGroup} />
             <Stage name="$project" value={project} onChange={setProject} />
             <Stage name="$sort" value={sort} onChange={setSort} />
-          </Accordion>
+          </Accordion> */}
+          <Pipeline />
         </GridItem>
         <GridItem w="100%">
           <Box h={'26px'} mb={2}>
