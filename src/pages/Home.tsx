@@ -18,6 +18,7 @@ import {
   a11yDark,
   a11yLight,
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import DataTable from '../components/DataTable';
 import Stage from '../components/Stage';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { parseObj } from '../lib/utils';
@@ -162,7 +163,15 @@ export default function Home() {
 
   return (
     <Box p={5}>
-      <Grid templateColumns="repeat(3, 1fr)" gap={6}>
+      <Grid
+        templateColumns={{
+          sm: 'repeat(2, 1fr)',
+          md: 'repeat(2, 1fr)',
+          lg: 'repeat(2, 1fr)',
+          xl: 'repeat(3, 1fr)',
+        }}
+        gap={6}
+      >
         <GridItem w="100%">
           <SimpleGrid columns={2} spacing={2} mb={2}>
             <Box>
@@ -221,9 +230,19 @@ export default function Home() {
             </Flex>
           </Box>
         </GridItem>
-        <GridItem w="100%" overflowX="auto">
-          <Box>{data && `${data.length} records`}</Box>
-          <pre>{data && JSON.stringify(data, null, 2)}</pre>
+        <GridItem
+          w="100%"
+          overflowX="auto"
+          colSpan={{
+            sm: 2,
+            md: 2,
+            lg: 2,
+            xl: 1,
+          }}
+        >
+          {/* <Box>{data && `${data.length} records`}</Box>
+          <pre>{data && JSON.stringify(data, null, 2)}</pre> */}
+          <DataTable data={data} />
         </GridItem>
       </Grid>
     </Box>
