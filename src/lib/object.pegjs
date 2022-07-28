@@ -11,10 +11,12 @@ object
       }
     )?
     end_object
-    { return members !== null ? members : {}; }
+    {
+    return members !== null ? members : {};
+    }
 
 member
-  = name:key name_separator value:leaf_value {
+   = name:key name_separator value:leaf_value {
       return { name: name, value: value };
     }
 
@@ -25,9 +27,19 @@ end_object      = _ "}" _
 name_separator  = _ ":" _
 value_separator = _ "," _
 
-
 key
-  = key:( [^\x00"':]*) { return key.join(''); }
+  = double_quote_key
+  / single_quote_key
+  / naked_key
+
+naked_key
+	= key:([^\x00:{}]*) { return key.join(''); }
+
+single_quote_key
+	= single_quote_mark key:([^\x00':]*) single_quote_mark { return key.join(''); }
+
+double_quote_key
+	= quotation_mark key:([^\x00":]*) quotation_mark { return key.join(''); }
 
 false = "false" { return false; }
 null  = "null"  { return null;  }
@@ -37,11 +49,11 @@ leaf_value
   = false
   / null
   / true
+  / object
+  / array
   / number
   / single_quote_string
   / string
-  / object
-  / array
 
 quotation_mark = '"'
 single_quote_mark = "'"
@@ -104,15 +116,6 @@ array
   = begin_array
     values:(
       head:leaf_value tail:(value_separator v:leaf_value { return v; })* value_separator?
-      { return [head].concat(tail); }
-    )?
-    end_array
-    { return values !== null ? values : []; }
-
-array_number
-  = begin_array
-    values:(
-      head:number tail:(value_separator v:number { return v; })* value_separator?
       { return [head].concat(tail); }
     )?
     end_array

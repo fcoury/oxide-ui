@@ -5,6 +5,7 @@ import {
   TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
@@ -24,15 +25,11 @@ export default function DataTable(props: TableProps) {
 
   if (!data || _.isEmpty(data)) return null;
 
-  console.log('data', data);
-
   /** Data */
   const fields = _(data)
     .flatMap((row) => _.keys(row))
     .uniq()
     .value();
-
-  console.log('fields', fields);
 
   /** Elements */
   const headers = fields.map((f) => <Th key={f}>{f}</Th>);
@@ -46,19 +43,33 @@ export default function DataTable(props: TableProps) {
         if (objKey === '$o') {
           return (
             <Td key={key}>
-              <Badge mr={2}>ObjectID</Badge>
+              <Badge mr={2} fontSize="8px">
+                ObjectID
+              </Badge>
               {objValue}
             </Td>
           );
         } else if (objKey === '$d') {
+          const dateVal = new Date(objValue);
           return (
             <Td key={key}>
-              <Badge>Date</Badge>
-              {objValue}
+              <Badge mr={2} fontSize="8px">
+                ISODate
+              </Badge>
+              {dateVal.toISOString()}
             </Td>
           );
         } else {
-          return <Td key={key}>{JSON.stringify(val)}</Td>;
+          return (
+            <Td key={key}>
+              <Text noOfLines={1} maxW="sm">
+                <Badge mr={2} fontSize="8px">
+                  OBJ
+                </Badge>
+                <code>{JSON.stringify(val)}</code>
+              </Text>
+            </Td>
+          );
         }
       } else if (_.isNumber(val)) {
         return (
