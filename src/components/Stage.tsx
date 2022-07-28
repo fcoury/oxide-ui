@@ -19,17 +19,17 @@ interface StageProps {
   name: string;
   value: string;
   index: number;
-  expanded: boolean;
+  enabled: boolean;
   onChange: (value: string) => void;
+  onEnableToggle: (enabled: boolean) => void;
 }
 
 export default function Stage(props: StageProps) {
   const { name, index } = props;
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(props.enabled);
   const [changed, setChanged] = useState(false);
   const [value, setValue] = useState(props.value);
   const [error, setError] = useState('');
-  const [expanded, setExpanded] = useState(props.expanded);
   const { colorMode } = useColorMode();
 
   /** Effects */
@@ -47,6 +47,10 @@ export default function Stage(props: StageProps) {
     console.log('props.value changed', props.value);
     setValue(props.value);
   }, [props.value]);
+
+  useEffect(() => {
+    setEnabled(props.enabled);
+  }, [props.enabled]);
 
   /** Events */
   const onChange = useCallback(
@@ -102,13 +106,13 @@ export default function Stage(props: StageProps) {
     >
       {(provided, snapshot) => (
         <div ref={provided.innerRef} {...provided.draggableProps}>
-          <AccordionItem _expanded={expanded}>
+          <AccordionItem>
             <h2>
               <AccordionButton>
                 <Checkbox
                   mr={2}
                   isChecked={enabled}
-                  onChange={() => setEnabled(!enabled)}
+                  onChange={() => props.onEnableToggle(!enabled)}
                 />
                 <Box
                   flex="1"

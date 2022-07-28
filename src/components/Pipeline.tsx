@@ -1,15 +1,10 @@
 import { Accordion } from '@chakra-ui/react';
-import { useState } from 'react';
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import useStore, { Stage as StageType } from '../stores';
 import Stage from './Stage';
 
 export default function Pipeline() {
-  const [stages, setStages] = useState([
-    { name: '$match', value: '{}', expanded: false },
-    { name: '$group', value: '{}', expanded: false },
-    { name: '$project', value: '{}', expanded: false },
-    { name: '$sort', value: '{}', expanded: false },
-  ]);
+  const { stages, setStages } = useStore();
 
   /** Events */
   const onDragEnd = (result: DropResult) => {
@@ -22,6 +17,24 @@ export default function Pipeline() {
     newStages.splice(result.destination.index, 0, removed);
     setStages(newStages);
   };
+
+  const onStageChange =
+    (stage: StageType, index: number) => (value: string) => {
+      setStages([
+        ...stages.slice(0, index),
+        { ...stage, value },
+        ...stages.slice(index + 1),
+      ]);
+    };
+
+  const onEnableChanged =
+    (stage: StageType, index: number) => (enabled: boolean) => {
+      setStages([
+        ...stages.slice(0, index),
+        { ...stage, enabled },
+        ...stages.slice(index + 1),
+      ]);
+    };
 
   // updates the expanded setting on stages from an array of expanded indexes
   const onExpandedChange = (expanded: number[]) => {
@@ -39,13 +52,9 @@ export default function Pipeline() {
       index={index}
       name={stage.name}
       value={stage.value}
-      onChange={(value) => {
-        setStages([
-          ...stages.slice(0, index),
-          { ...stage, value },
-          ...stages.slice(index + 1),
-        ]);
-      }}
+      enabled={stage.enabled}
+      onChange={onStageChange(stage, index)}
+      onEnableToggle={onEnableChanged(stage, index)}
     />
   ));
 

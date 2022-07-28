@@ -9,9 +9,7 @@ import {
   SimpleGrid,
   useColorMode,
 } from '@chakra-ui/react';
-import { format } from 'cl-sql-formatter';
-import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -19,51 +17,38 @@ import {
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import DataTable from '../components/DataTable';
 import Pipeline from '../components/Pipeline';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { parseObj } from '../lib/utils';
-
-async function post(url: string, data: any) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  return await res.json();
-}
-
-async function get(url: string) {
-  const res = await fetch(url);
-  return await res.json();
-}
+import useStore, { DEFAULT_STAGES, Stage } from '../stores';
 
 export default function Home() {
   const { colorMode } = useColorMode();
-  const [match, setMatch] = useState('{}');
-  const [group, setGroup] = useState('{}');
-  const [project, setProject] = useState('{}');
-  const [sort, setSort] = useState('{}');
-  const [valid, setValid] = useState(true);
-  const [query, setQuery] = useState('');
-  const [error, setError] = useState('');
-  const [databases, setDatabases] = useState([]);
-  const [collections, setCollections] = useState([]);
-  const [database, setDatabase] = useLocalStorage<string>(
-    'currentDatabase',
-    '',
-  );
-  const [collection, setCollection] = useLocalStorage<string>(
-    'currentCollection',
-    '',
-  );
-  const [data, setData] = useState([]);
+  const {
+    stages,
+    query,
+    error,
+    databases,
+    collections,
+    database,
+    collection,
+
+    setStages,
+    setQuery,
+    setError,
+    setDatabase,
+    setCollection,
+    setData,
+
+    loadDatabases,
+    loadCollections,
+    convert,
+    run,
+    data,
+  } = useStore();
 
   /** Effects */
   useEffect(() => {
     setError('');
     convert();
-  }, [match, group, project, sort]);
+  }, [stages]);
   useEffect(() => {
     loadDatabases();
   }, []);
@@ -74,74 +59,17 @@ export default function Home() {
     convert();
   }, [collection]);
 
-  /** API Calls */
-  const convert = async () => {
-    let pipeline = [];
-
-    pipeline.push({
-      $match: parseObj(match),
-    });
-
-    if (group.trim() !== '{}' && !_.isEmpty(group)) {
-      pipeline.push({
-        $group: parseObj(group),
-      });
-    }
-
-    if (project.trim() !== '{}' && !_.isEmpty(project)) {
-      pipeline.push({
-        $project: parseObj(project),
-      });
-    }
-
-    if (sort.trim() !== '{}' && !_.isEmpty(sort)) {
-      pipeline.push({
-        $sort: parseObj(sort),
-      });
-    }
-
-    const data: any = await post('/api/convert', {
-      database,
-      collection,
-      pipeline,
-    });
-    if (data.error) {
-      setError(data.error);
-      return;
-    }
-    setQuery(format(data.sql, { language: 'postgresql' }));
-  };
-
-  const loadDatabases = async () => {
-    let { databases } = await get('/api/databases');
-    if (!databases) return;
-    const filteredDatabases = databases.filter((db: string) => db !== 'public');
-    setDatabases(filteredDatabases);
-    if (database === '') {
-      setDatabase(filteredDatabases[0]);
-    }
-  };
-
-  const loadCollections = async () => {
-    if (!database) return;
-    let { collections } = await get(`/api/databases/${database}/collections`);
-    setCollections(collections);
-    if (collection === '') {
-      setCollection(collections[0]);
-    }
-  };
-
   /** Events */
   const onRun = async () => {
-    const { rows } = await post('/api/run', { query });
-    setData(rows);
+    await run();
+  };
+
+  const onPipelineChange = (stages: Stage[]) => {
+    setStages(stages);
   };
 
   const onClear = async () => {
-    setMatch('{}');
-    setGroup('{}');
-    setProject('{}');
-    setSort('{}');
+    setStages(DEFAULT_STAGES);
     setData([]);
   };
 
@@ -190,12 +118,6 @@ export default function Home() {
               </Select>
             </Box>
           </SimpleGrid>
-          {/* <Accordion allowMultiple>
-            <Stage name="$match" value={match} onChange={setMatch} />
-            <Stage name="$group" value={group} onChange={setGroup} />
-            <Stage name="$project" value={project} onChange={setProject} />
-            <Stage name="$sort" value={sort} onChange={setSort} />
-          </Accordion> */}
           <Pipeline />
         </GridItem>
         <GridItem w="100%">
@@ -238,9 +160,7 @@ export default function Home() {
             xl: 1,
           }}
         >
-          {/* <Box>{data && `${data.length} records`}</Box>
-          <pre>{data && JSON.stringify(data, null, 2)}</pre> */}
-          <DataTable data={data} />
+          {data && <DataTable data={data} />}
         </GridItem>
       </Grid>
     </Box>
