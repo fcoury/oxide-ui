@@ -21,7 +21,7 @@ interface StageProps {
   index: number;
   enabled: boolean;
   onChange: (value: string) => void;
-  onEnableToggle: () => void;
+  onEnableToggle: (value?: boolean) => void;
 }
 
 export default function Stage(props: StageProps) {
@@ -44,7 +44,6 @@ export default function Stage(props: StageProps) {
   }, [value]);
 
   useEffect(() => {
-    console.log('props.value changed', props.value);
     setValue(props.value);
   }, [props.value]);
 
@@ -69,9 +68,11 @@ export default function Stage(props: StageProps) {
       }
 
       if (changed) {
-        props.onEnableToggle();
+        if (!enabled) {
+          props.onEnableToggle(true);
+        }
+        setChanged(false);
       }
-      setChanged(false);
       parseObj(value);
       setValue(formatCode(value));
     } catch (error: any) {

@@ -7,9 +7,11 @@ import {
   GridItem,
   Select,
   SimpleGrid,
+  Spinner,
   useColorMode,
 } from '@chakra-ui/react';
 import { useEffect } from 'react';
+import { MdArrowDropDown } from 'react-icons/md';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -29,6 +31,10 @@ export default function Home() {
     collections,
     database,
     collection,
+    loadingDatabases,
+    loadingCollections,
+    loadingQuery,
+    loadingData,
 
     setStages,
     setQuery,
@@ -103,6 +109,8 @@ export default function Home() {
               <Select
                 size="xs"
                 value={database}
+                icon={loadingDatabases ? <Spinner /> : <MdArrowDropDown />}
+                disabled={loadingDatabases}
                 onChange={(e) => setDatabase(e.target.value)}
               >
                 {databaseOptions}
@@ -112,6 +120,8 @@ export default function Home() {
               <Select
                 size="xs"
                 value={collection}
+                icon={loadingCollections ? <Spinner /> : <MdArrowDropDown />}
+                disabled={loadingCollections}
                 onChange={(e) => setCollection(e.target.value)}
               >
                 {collectionOptions}
@@ -135,13 +145,28 @@ export default function Home() {
           <Box mt={5}>
             <Flex>
               <Center>
-                <Button colorScheme="gray" onClick={onRun}>
+                <Button
+                  colorScheme="gray"
+                  onClick={onRun}
+                  isLoading={loadingData}
+                  disabled={loadingQuery}
+                >
                   Run
                 </Button>
-                <Button colorScheme="gray" onClick={onClear} ml={2}>
+                <Button
+                  colorScheme="gray"
+                  onClick={onClear}
+                  ml={2}
+                  disabled={loadingQuery || loadingData}
+                >
                   Clear
                 </Button>
               </Center>
+              {loadingQuery && (
+                <Center ml={2} textAlign="right" color="red.500">
+                  <Spinner />
+                </Center>
+              )}
               {error && (
                 <Center ml={2} textAlign="right" color="red.500">
                   {error}
@@ -160,7 +185,7 @@ export default function Home() {
             xl: 1,
           }}
         >
-          {data && <DataTable data={data} />}
+          <DataTable data={data} loading={loadingData} />
         </GridItem>
       </Grid>
     </Box>

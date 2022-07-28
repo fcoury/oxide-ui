@@ -1,5 +1,11 @@
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Badge,
+  Skeleton,
+  Stack,
   Table,
   TableCaption,
   TableContainer,
@@ -17,13 +23,33 @@ interface Row {
 }
 
 interface TableProps {
-  data: Row[];
+  data: Row[] | undefined | null;
+  loading?: boolean;
 }
 
 export default function DataTable(props: TableProps) {
-  const { data } = props;
+  const { data, loading } = props;
 
-  if (!data || _.isEmpty(data)) return null;
+  if (loading) {
+    return (
+      <Stack>
+        <Skeleton height="20px" />
+        <Skeleton height="20px" />
+        <Skeleton height="20px" />
+      </Stack>
+    );
+  }
+
+  if (!data || _.isEmpty(data))
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        <AlertTitle>No rows found!</AlertTitle>
+        <AlertDescription>
+          Please check your query and try again.
+        </AlertDescription>
+      </Alert>
+    );
 
   /** Data */
   const fields = _(data)
