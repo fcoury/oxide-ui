@@ -127,7 +127,7 @@ export default function Home() {
           <SyntaxHighlighter
             language="sql"
             style={colorMode === 'dark' ? a11yDark : a11yLight}
-            customStyle={{ height: 'calc(60vh)', fontSize: '12px' }}
+            customStyle={{ height: 'calc(40vh)', fontSize: '12px' }}
             wrapLongLines={true}
           >
             {query}

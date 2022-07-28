@@ -120,12 +120,17 @@ const useStore = create<State>()(
         const { stages, database, collection } = get();
         let pipeline = [];
 
-        for (const stage of stages) {
-          if (
-            (stage.name === '$match' || stage.value !== '{}') &&
-            !_.isEmpty(stage.value)
-          ) {
-            pipeline.push({ [stage.name]: parseObj(stage.value) });
+        if (!stages.find((s) => s.enabled)) {
+          pipeline.push({ $match: {} });
+        } else {
+          for (const stage of stages) {
+            if (
+              (stage.name === '$match' || stage.value !== '{}') &&
+              stage.enabled &&
+              !_.isEmpty(stage.value)
+            ) {
+              pipeline.push({ [stage.name]: parseObj(stage.value) });
+            }
           }
         }
 

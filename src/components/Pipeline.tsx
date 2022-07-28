@@ -27,14 +27,13 @@ export default function Pipeline() {
       ]);
     };
 
-  const onEnableChanged =
-    (stage: StageType, index: number) => (enabled: boolean) => {
-      setStages([
-        ...stages.slice(0, index),
-        { ...stage, enabled },
-        ...stages.slice(index + 1),
-      ]);
-    };
+  const onEnableChanged = (stage: StageType, index: number) => () => {
+    setStages([
+      ...stages.slice(0, index),
+      { ...stage, enabled: !stage.enabled },
+      ...stages.slice(index + 1),
+    ]);
+  };
 
   // updates the expanded setting on stages from an array of expanded indexes
   const onExpandedChange = (expanded: number[]) => {

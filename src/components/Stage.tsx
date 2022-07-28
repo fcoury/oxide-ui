@@ -21,7 +21,7 @@ interface StageProps {
   index: number;
   enabled: boolean;
   onChange: (value: string) => void;
-  onEnableToggle: (enabled: boolean) => void;
+  onEnableToggle: () => void;
 }
 
 export default function Stage(props: StageProps) {
@@ -69,7 +69,7 @@ export default function Stage(props: StageProps) {
       }
 
       if (changed) {
-        setEnabled(true);
+        props.onEnableToggle();
       }
       setChanged(false);
       parseObj(value);
@@ -112,7 +112,7 @@ export default function Stage(props: StageProps) {
                 <Checkbox
                   mr={2}
                   isChecked={enabled}
-                  onChange={() => props.onEnableToggle(!enabled)}
+                  onChange={() => props.onEnableToggle()}
                 />
                 <Box
                   flex="1"
@@ -122,11 +122,10 @@ export default function Stage(props: StageProps) {
                 >
                   <code>{name}</code> Stage
                 </Box>
+                <AccordionIcon />
                 <div {...provided.dragHandleProps}>
                   <DragHandleIcon w={3} h={3} color="gray.500" />
                 </div>
-
-                <AccordionIcon />
               </AccordionButton>
             </h2>
             <AccordionPanel>
