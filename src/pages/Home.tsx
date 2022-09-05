@@ -37,7 +37,6 @@ export default function Home() {
     loadingData,
 
     setStages,
-    setQuery,
     setError,
     setDatabase,
     setCollection,
@@ -76,7 +75,7 @@ export default function Home() {
 
   const onClear = async () => {
     setStages(DEFAULT_STAGES);
-    setData([]);
+    setData(null);
   };
 
   /** Properties */

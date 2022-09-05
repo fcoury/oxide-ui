@@ -22,13 +22,21 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react';
+import { useEffect } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import useStore, { Config } from '../stores';
 
 export default function WithSubnavigation() {
   const { isOpen, onToggle } = useDisclosure();
   const { toggleColorMode } = useColorMode();
+  const { loadConfig, config } = useStore();
+  const { version } = config;
+
+  useEffect(() => {
+    loadConfig();
+  }, []);
 
   return (
     <Box>
@@ -68,9 +76,10 @@ export default function WithSubnavigation() {
           >
             OxideDB
           </Text>
+          <Text ml={2}>{version}</Text>
 
           <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
-            <DesktopNav />
+            <DesktopNav config={config} />
           </Flex>
         </Flex>
 
@@ -104,52 +113,54 @@ export default function WithSubnavigation() {
   );
 }
 
-const DesktopNav = () => {
+const DesktopNav = ({ config }: { config: Config }) => {
   const linkColor = useColorModeValue('gray.600', 'gray.200');
   const linkHoverColor = useColorModeValue('gray.800', 'white');
   const popoverContentBgColor = useColorModeValue('white', 'gray.800');
 
   return (
     <Stack direction={'row'} spacing={4}>
-      {NAV_ITEMS.map((navItem) => (
-        <Box key={navItem.label}>
-          <Popover trigger={'hover'} placement={'bottom-start'}>
-            <PopoverTrigger>
-              <Link
-                as={NavLink}
-                p={2}
-                to={navItem.href ?? '#'}
-                fontSize={'sm'}
-                fontWeight={500}
-                color={linkColor}
-                _hover={{
-                  textDecoration: 'none',
-                  color: linkHoverColor,
-                }}
-              >
-                {navItem.label}
-              </Link>
-            </PopoverTrigger>
+      {NAV_ITEMS.filter((n) => config && (!n.if || n.if(config))).map(
+        (navItem) => (
+          <Box key={navItem.label}>
+            <Popover trigger={'hover'} placement={'bottom-start'}>
+              <PopoverTrigger>
+                <Link
+                  as={NavLink}
+                  p={2}
+                  to={navItem.href ?? '#'}
+                  fontSize={'sm'}
+                  fontWeight={500}
+                  color={linkColor}
+                  _hover={{
+                    textDecoration: 'none',
+                    color: linkHoverColor,
+                  }}
+                >
+                  {navItem.label}
+                </Link>
+              </PopoverTrigger>
 
-            {navItem.children && (
-              <PopoverContent
-                border={0}
-                boxShadow={'xl'}
-                bg={popoverContentBgColor}
-                p={4}
-                rounded={'xl'}
-                minW={'sm'}
-              >
-                <Stack>
-                  {navItem.children.map((child) => (
-                    <DesktopSubNav key={child.label} {...child} />
-                  ))}
-                </Stack>
-              </PopoverContent>
-            )}
-          </Popover>
-        </Box>
-      ))}
+              {navItem.children && (
+                <PopoverContent
+                  border={0}
+                  boxShadow={'xl'}
+                  bg={popoverContentBgColor}
+                  p={4}
+                  rounded={'xl'}
+                  minW={'sm'}
+                >
+                  <Stack>
+                    {navItem.children.map((child) => (
+                      <DesktopSubNav key={child.label} {...child} />
+                    ))}
+                  </Stack>
+                </PopoverContent>
+              )}
+            </Popover>
+          </Box>
+        ),
+      )}
     </Stack>
   );
 };
@@ -263,11 +274,17 @@ interface NavItem {
   subLabel?: string;
   children?: Array<NavItem>;
   href?: string;
+  if?: (config: Config) => boolean;
 }
 
 const NAV_ITEMS: Array<NavItem> = [
   {
     label: 'Home',
     href: '/',
+  },
+  {
+    label: 'Trace',
+    href: '/trace',
+    if: (config) => !!config?.cli?.trace,
   },
 ];

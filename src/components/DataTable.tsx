@@ -40,7 +40,9 @@ export default function DataTable(props: TableProps) {
     );
   }
 
-  if (!data || _.isEmpty(data))
+  if (!data) return null;
+
+  if (_.isEmpty(data))
     return (
       <Alert status="error">
         <AlertIcon />

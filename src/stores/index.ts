@@ -1,10 +1,11 @@
 import { format } from 'cl-sql-formatter';
 import _ from 'lodash';
 import create from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, PersistOptions } from 'zustand/middleware';
 import { parseObj } from '../lib/utils';
 
 type State = {
+  config: Config;
   databases: string[];
   collections: string[];
   database: string;
@@ -23,10 +24,10 @@ type State = {
   setDatabase: (database: string) => void;
   setCollection: (collection: string) => void;
   setStages: (stages: Stage[]) => void;
-  setQuery: (query: string) => void;
-  setData: (data: any[]) => void;
+  setData: (data: any[] | null) => void;
   setError: (error: string | null) => void;
 
+  loadConfig: () => Promise<void>;
   loadDatabases: () => Promise<void>;
   loadCollections: () => Promise<void>;
   convert: () => Promise<void>;
@@ -40,6 +41,22 @@ export type Stage = {
   enabled: boolean;
   error: string | null;
 };
+
+export type Config = {
+  version: string | null;
+  cli: null | {
+    command: string;
+    listenAddr: string;
+    port: number;
+    postgresUrl: string;
+    web: boolean;
+    webAddr: string;
+    debug: boolean;
+    trace: boolean;
+  };
+};
+
+const NullConfig: Config = { version: null, cli: null };
 
 export const DEFAULT_STAGES = [
   { name: '$match', value: '{}', expanded: false, enabled: false, error: null },
@@ -70,119 +87,135 @@ async function getUrl(url: string) {
   return await res.json();
 }
 
+const persistOptions: PersistOptions<State, Partial<State>> = {
+  name: 'oxidedb-ui',
+  partialize: (state) => ({
+    collection: state.collection,
+    database: state.database,
+  }),
+};
+
 const useStore = create<State>()(
   devtools(
-    persist((set, get) => ({
-      /** Members */
-      database: '',
-      collection: '',
-      databases: [],
-      collections: [],
-      stages: DEFAULT_STAGES,
-      query: '',
-      data: null,
-      error: null,
-      loadingDatabases: false,
-      loadingCollections: false,
-      loadingQuery: false,
-      loadingData: false,
+    persist(
+      (set, get) => ({
+        /** Members */
+        config: NullConfig,
+        database: '',
+        collection: '',
+        databases: [],
+        collections: [],
+        stages: DEFAULT_STAGES,
+        query: '',
+        data: null,
+        error: null,
+        loadingDatabases: false,
+        loadingCollections: false,
+        loadingQuery: false,
+        loadingData: false,
 
-      /** Setters */
-      setDatabases: (databases: string[]) => set(() => ({ databases })),
-      setCollections: (collections: string[]) => set(() => ({ collections })),
-      setDatabase: (database: string) =>
-        set(() => ({ database, collection: '' })),
-      setCollection: (collection: string) => set(() => ({ collection })),
-      setStages: (stages: Stage[]) => set(() => ({ stages })),
-      setQuery: (query: string) => set(() => ({ query })),
-      setData: (data: any[]) => set(() => ({ data })),
-      setError: (error: string | null) => set(() => ({ error })),
+        /** Setters */
+        setDatabases: (databases: string[]) => set(() => ({ databases })),
+        setCollections: (collections: string[]) => set(() => ({ collections })),
+        setDatabase: (database: string) =>
+          set(() => ({ database, collection: '' })),
+        setCollection: (collection: string) => set(() => ({ collection })),
+        setStages: (stages: Stage[]) => set(() => ({ stages })),
+        setData: (data: any[] | null) => set(() => ({ data })),
+        setError: (error: string | null) => set(() => ({ error })),
 
-      /** API calls */
-      loadDatabases: async () => {
-        const { database, loadCollections } = get();
-        set({ loadingDatabases: true });
-        let { databases } = await getUrl('/api/databases');
-        set({ loadingDatabases: false });
-        if (!databases) return;
-        const filteredDatabases = databases.filter(
-          (db: string) =>
-            db !== 'public' &&
-            db !== 'timescaledb_information' &&
-            !db.startsWith('_timescaledb'),
-        );
-        set({ databases: filteredDatabases });
-        if (database === '') {
-          set({ database: filteredDatabases[0] });
-          set({ collection: '' });
-          loadCollections();
-        }
-      },
+        /** API calls */
+        loadConfig: async () => {
+          let config = await getUrl('/api/config');
+          set({ config });
+        },
 
-      loadCollections: async () => {
-        const { database, collection } = get();
+        loadDatabases: async () => {
+          const { database, loadCollections } = get();
+          set({ loadingDatabases: true });
+          let { databases } = await getUrl('/api/databases');
+          set({ loadingDatabases: false });
+          if (!databases) return;
+          const filteredDatabases = databases.filter(
+            (db: string) =>
+              db !== 'public' &&
+              db !== 'timescaledb_information' &&
+              !db.startsWith('_timescaledb'),
+          );
+          set({ databases: filteredDatabases });
+          if (database === '') {
+            set({ database: filteredDatabases[0] });
+            set({ collection: '' });
+            loadCollections();
+          }
+        },
 
-        if (!database) return;
-        set({ loadingCollections: true });
-        let { collections } = await getUrl(
-          `/api/databases/${database}/collections`,
-        );
-        set({ collections });
-        set({ loadingCollections: false });
-        if (collection === '') {
-          set({ collection: collections[0] });
-        }
-      },
+        loadCollections: async () => {
+          const { database, collection } = get();
 
-      convert: async () => {
-        const { stages, database, collection } = get();
-        let pipeline = [];
+          if (!database) return;
+          set({ loadingCollections: true });
+          let { collections } = await getUrl(
+            `/api/databases/${database}/collections`,
+          );
+          set({ collections });
+          set({ loadingCollections: false });
+          if (collection === '') {
+            set({ collection: collections[0] });
+          }
+        },
 
-        if (!stages.find((s) => s.enabled)) {
-          pipeline.push({ $match: {} });
-        } else {
-          for (const stage of stages) {
-            if (
-              (stage.name === '$match' || stage.value !== '{}') &&
-              stage.enabled &&
-              !_.isEmpty(stage.value)
-            ) {
-              pipeline.push({ [stage.name]: parseObj(stage.value) });
+        convert: async () => {
+          const { stages, database, collection } = get();
+          let pipeline = [];
+
+          if (!stages.find((s) => s.enabled)) {
+            pipeline.push({ $match: {} });
+          } else {
+            for (const stage of stages) {
+              if (
+                (stage.name === '$match' || stage.value !== '{}') &&
+                stage.enabled &&
+                !_.isEmpty(stage.value)
+              ) {
+                pipeline.push({ [stage.name]: parseObj(stage.value) });
+              }
             }
           }
-        }
 
-        set({ loadingQuery: true });
-        try {
-          const data: any = await postUrl('/api/convert', {
-            database,
-            collection,
-            pipeline,
-          });
-          set({ loadingQuery: false });
+          set({ loadingQuery: true });
+          try {
+            const data: any = await postUrl('/api/convert', {
+              database,
+              collection,
+              pipeline,
+            });
+            set({ loadingQuery: false });
+            if (data.error) {
+              set({ error: data.error });
+              return;
+            }
+            set({ query: format(data.sql, { language: 'postgresql' }) });
+          } catch (e: any) {
+            set({ loadingQuery: false });
+            set({ error: e.message });
+          }
+        },
+
+        run: async () => {
+          const { query } = get();
+          set({ loadingData: true });
+          const data: any = await postUrl('/api/run', { query });
+          set({ loadingData: false });
           if (data.error) {
             set({ error: data.error });
             return;
           }
-          set({ query: format(data.sql, { language: 'postgresql' }) });
-        } catch (e: any) {
-          set({ loadingQuery: false });
-          set({ error: e.message });
-        }
-      },
-
-      run: async () => {
-        const { query } = get();
-        set({ loadingData: true });
-        const data: any = await postUrl('/api/run', { query });
-        set({ loadingData: false });
-        if (data.error) {
-          set({ error: data.error });
-          return;
-        }
-        set({ data: data.rows });
-      },
-    })),
+          set({ data: data.rows });
+        },
+      }),
+      persistOptions,
+    ),
   ),
 );
 
